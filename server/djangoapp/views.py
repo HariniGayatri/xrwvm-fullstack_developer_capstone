@@ -13,7 +13,8 @@ from django.contrib.auth import login, authenticate
 import logging
 import json
 from django.views.decorators.csrf import csrf_exempt
-# from .populate import initiate
+from .populate import initiate
+from .models import CarMake, CarModel
 
 
 # Get an instance of a logger
@@ -98,3 +99,45 @@ def registration(request):
 # Create a `add_review` view to submit a review
 # def add_review(request):
 # ...
+def get_dealerships(request):
+    # Fetch dealerships data from the database
+    dealerships = Dealership.objects.all()
+    return render(request, 'index.html', {'dealerships': dealerships})
+
+# Create a `get_dealer_reviews` view to render the reviews of a dealer
+def get_dealer_reviews(request, dealer_id):
+    # Fetch reviews for the specified dealer_id from the database
+    dealer_reviews = Review.objects.filter(dealership=dealer_id)
+    return render(request, 'dealer_reviews.html', {'reviews': dealer_reviews})
+
+# Create a `get_dealer_details` view to render the dealer details
+def get_dealer_details(request, dealer_id):
+    # Fetch details for the specified dealer_id from the database
+    dealer = Dealership.objects.get(pk=dealer_id)
+    return render(request, 'dealer_details.html', {'dealer': dealer})
+
+# Create an `add_review` view to submit a review
+def add_review(request):
+    if request.method == 'POST':
+        # Process form submission
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            # Save the review to the database
+            form.save()
+            messages.success(request, 'Review submitted successfully!')
+            return redirect('home')  # Redirect to home page or any other appropriate page
+    else:
+        # Render the form for adding a review
+        form = ReviewForm()
+    return render(request, 'add_review.html', {'form': form})
+
+def get_cars(request):
+    count = CarMake.objects.filter().count()
+    print(count)
+    if(count == 0):
+        initiate()
+    car_models = CarModel.objects.select_related('car_make')
+    cars = []
+    for car_model in car_models:
+        cars.append({"CarModel": car_model.name, "CarMake": car_model.car_make.name})
+    return JsonResponse({"CarModels":cars})
