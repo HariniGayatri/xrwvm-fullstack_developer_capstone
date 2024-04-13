@@ -15,6 +15,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
 from .models import CarMake, CarModel
+from .restapis import get_request, analyze_review_sentiments, post_review
 
 
 # Get an instance of a logger
@@ -86,6 +87,13 @@ def registration(request):
 # a list of dealerships
 #def get_dealerships(request):
 # ...
+def get_dealerships(request, state="All"):
+    if(state == "All"):
+        endpoint = "/fetchDealers"
+    else:
+        endpoint = "/fetchDealers/"+state
+    dealerships = get_request(endpoint)
+    return JsonResponse({"status":200,"dealers":dealerships})
 
 
 # Create a `get_dealer_reviews` view to render the reviews of a dealer
@@ -95,41 +103,41 @@ def registration(request):
 # Create a `get_dealer_details` view to render the dealer details
 # def get_dealer_details(request, dealer_id):
 # ...
+def get_dealer_details(request, dealer_id):
+    if(dealer_id):
+        endpoint = "/fetchDealer/"+str(dealer_id)
+        dealership = get_request(endpoint)
+        return JsonResponse({"status":200,"dealer":dealership})
+    else:
+        return JsonResponse({"status":400,"message":"Bad Request"})
 
 # Create a `add_review` view to submit a review
 # def add_review(request):
 # ...
-def get_dealerships(request):
-    # Fetch dealerships data from the database
-    dealerships = Dealership.objects.all()
-    return render(request, 'index.html', {'dealerships': dealerships})
-
-# Create a `get_dealer_reviews` view to render the reviews of a dealer
 def get_dealer_reviews(request, dealer_id):
-    # Fetch reviews for the specified dealer_id from the database
-    dealer_reviews = Review.objects.filter(dealership=dealer_id)
-    return render(request, 'dealer_reviews.html', {'reviews': dealer_reviews})
-
-# Create a `get_dealer_details` view to render the dealer details
-def get_dealer_details(request, dealer_id):
-    # Fetch details for the specified dealer_id from the database
-    dealer = Dealership.objects.get(pk=dealer_id)
-    return render(request, 'dealer_details.html', {'dealer': dealer})
+    # if dealer id has been provided
+    if(dealer_id):
+        endpoint = "/fetchReviews/dealer/"+str(dealer_id)
+        reviews = get_request(endpoint)
+        for review_detail in reviews:
+            response = analyze_review_sentiments(review_detail['review'])
+            print(response)
+            review_detail['sentiment'] = response['sentiment']
+        return JsonResponse({"status":200,"reviews":reviews})
+    else:
+        return JsonResponse({"status":400,"message":"Bad Request"})
 
 # Create an `add_review` view to submit a review
 def add_review(request):
-    if request.method == 'POST':
-        # Process form submission
-        form = ReviewForm(request.POST)
-        if form.is_valid():
-            # Save the review to the database
-            form.save()
-            messages.success(request, 'Review submitted successfully!')
-            return redirect('home')  # Redirect to home page or any other appropriate page
+    if(request.user.is_anonymous == False):
+        data = json.loads(request.body)
+        try:
+            response = post_review(data)
+            return JsonResponse({"status":200})
+        except:
+            return JsonResponse({"status":401,"message":"Error in posting review"})
     else:
-        # Render the form for adding a review
-        form = ReviewForm()
-    return render(request, 'add_review.html', {'form': form})
+        return JsonResponse({"status":403,"message":"Unauthorized"})
 
 def get_cars(request):
     count = CarMake.objects.filter().count()
