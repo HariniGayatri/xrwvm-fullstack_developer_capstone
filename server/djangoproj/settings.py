@@ -29,7 +29,7 @@ SECRET_KEY =\
 DEBUG = True
 
 ALLOWED_HOSTS=['localhost','https://harini21241a-8000.theianext-0-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai/']
-CSRF_TRUSTED_ORIGINS=['https://harini21241a-8000.theianext-0-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai/','https://harini21241a-8000.theianext-0-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai/*']
+CSRF_TRUSTED_ORIGINS=['https://harini21241a-8000.theianext-0-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai/','https://harini21241a-8000.theiadockernext-0-labs-prod-theiak8s-4-tor01.proxy.cognitiveclass.ai','https://harini21241a-8000.theianext-0-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai/*']
 CSRF_ALLOWED_ORIGINS=['https://harini21241a-8000.theianext-0-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai/']
 CORS_ORIGINS_WHITELIST=['https://harini21241a-8000.theianext-0-labs-prod-misc-tools-us-east-0.proxy.cognitiveclass.ai/']
 SECURE_PROXY_SSL_HEADER=('HTTP_X_FORWARDED_PROTO', 'https')
